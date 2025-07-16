@@ -40,8 +40,8 @@ jobs:
           if [[ "${{ github.event_name }}" == "release" ]]; then
             VERSION=${{ github.event.release.tag_name }}
           elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            # Get latest tag or default to v0.1.0
-            LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+            # Get highest version tag (not most recent chronologically)
+            LATEST_TAG=$(git tag --list 'v*' --sort=-v:refname | head -n 1 || echo "v0.0.0")
             # Extract version numbers
             VERSION_PARTS=(${LATEST_TAG//v/})
             VERSION_PARTS=(${VERSION_PARTS//./ })
@@ -97,5 +97,11 @@ jobs:
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git tag ${{ steps.version.outputs.VERSION }}
-          git push origin ${{ steps.version.outputs.VERSION }}
+          # Check if tag already exists to make this idempotent
+          if git rev-parse ${{ steps.version.outputs.VERSION }} >/dev/null 2>&1; then
+            echo "Tag ${{ steps.version.outputs.VERSION }} already exists, skipping tag creation"
+          else
+            echo "Creating and pushing new tag ${{ steps.version.outputs.VERSION }}"
+            git tag ${{ steps.version.outputs.VERSION }}
+            git push origin ${{ steps.version.outputs.VERSION }}
+          fi
