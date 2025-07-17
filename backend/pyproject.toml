@@ -94,7 +94,7 @@ exclude = [
 ]
 
 [tool.ruff.lint]
-# Start with basic rules - mild approach for legacy code
+# All rules
 select = [
     "E",   # pycodestyle errors
     "F",   # Pyflakes
@@ -104,7 +104,7 @@ select = [
     "I",   # isort
 ]
 
-# Keep it mild - ignore rules that would cause issues with legacy code
+# Basic ignores for formatter compatibility
 ignore = [
     "E501",  # Line too long (formatter handles this)
     "E203",  # Whitespace before ':'

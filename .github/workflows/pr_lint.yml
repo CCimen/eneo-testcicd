@@ -105,12 +105,30 @@ jobs:
             echo "skip=false" >> $GITHUB_OUTPUT
           fi
       
-      - name: Run Ruff on changed files only
+      - name: 🚨 Critical Issues Check (BLOCKING)
         if: steps.changed-files.outputs.skip == 'false'
         uses: astral-sh/ruff-action@v3
         with:
           src: ${{ steps.changed-files.outputs.files }}
-        continue-on-error: true  # Non-blocking
+          args: --select F401,F811,F821,F841,E999,B007,B008 --output-format github
+        # This step will FAIL the workflow for critical issues
+      
+      - name: 💅 Style & Format Check (NON-BLOCKING)
+        if: steps.changed-files.outputs.skip == 'false'
+        uses: astral-sh/ruff-action@v3
+        with:
+          src: ${{ steps.changed-files.outputs.files }}
+          args: --select E,W,I,UP,B --ignore F401,F811,F821,F841,B007,B008 --output-format github
+        continue-on-error: true  # Style issues won't block PR
+      
+      - name: 🎨 Auto-format Check (NON-BLOCKING)
+        if: steps.changed-files.outputs.skip == 'false'
+        run: |
+          echo "Installing ruff for formatting check..."
+          pip install ruff
+          echo "Checking format of: ${{ steps.changed-files.outputs.files }}"
+          ruff format --check ${{ steps.changed-files.outputs.files }} || echo "⚠️ Files need formatting (run 'ruff format' locally)"
+        continue-on-error: true
       
       - name: Skip message
         if: steps.changed-files.outputs.skip == 'true'
