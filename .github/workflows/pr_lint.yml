@@ -110,7 +110,7 @@ jobs:
         uses: astral-sh/ruff-action@v3
         with:
           src: ${{ steps.changed-files.outputs.files }}
-          args: check --select F401,F811,F821,F841,E999,B007,B008 --output-format github
+          args: check --select F401,F811,F821,F841,B007,B008 --output-format github
         # This step will FAIL the workflow for critical issues
       
       - name: 💅 Style & Format Check (NON-BLOCKING)

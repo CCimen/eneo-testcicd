@@ -13,7 +13,6 @@ This project uses a **hybrid approach** for code quality:
 - `F811` - Redefined variables  
 - `F821` - Undefined names
 - `F841` - Unused variables
-- `E999` - Syntax errors
 - `B007/B008` - Likely bugs
 
 ### 💅 Style (Non-blocking warnings)
