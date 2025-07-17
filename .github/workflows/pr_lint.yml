@@ -104,7 +104,7 @@ jobs:
         run: poetry install --no-interaction --no-root
       - name: Run basic linting
         run: |
-          poetry run ruff check . || echo "Ruff check failed but continuing..."
+          poetry run flake8 . || echo "Flake8 check failed but continuing..."
           poetry run black --check . || echo "Black check failed but continuing..."
       - name: Run type checking (non-blocking)
         run: poetry run mypy . || echo "MyPy check failed but continuing..."
