@@ -3,8 +3,7 @@ Simple test feature to verify ruff workflow works on changed files only.
 This file has some intentional style issues to test ruff.
 """
 
-import os,sys  # Bad: multiple imports on one line (should be separate)
-from typing import Dict,List  # Bad: missing spaces after commas
+from typing import Dict,List  # Bad: missing spaces after commas (style issue only)
 
 def calculate_total(items:List[Dict[str,float]]) -> float:  # Bad: missing spaces around colons
     """Calculate total price from items."""
