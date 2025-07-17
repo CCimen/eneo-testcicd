@@ -83,28 +83,17 @@ jobs:
 
   backend-checks:
     runs-on: ubuntu-latest
-    name: Backend basic checks
-    defaults:
-      run:
-        working-directory: backend
+    name: Backend checks (Ruff)
     permissions:
       contents: read
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
+          fetch-depth: 0  # Needed for changed files detection
+      - name: Ruff linting and formatting
+        uses: astral-sh/ruff-action@v3
         with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-      - name: Install dependencies
-        run: poetry install --no-interaction --no-root
-      - name: Run basic linting
-        run: |
-          poetry run flake8 . || echo "Flake8 check failed but continuing..."
-          poetry run black --check . || echo "Black check failed but continuing..."
-      - name: Run type checking (non-blocking)
-        run: poetry run mypy . || echo "MyPy check failed but continuing..."
+          src: "./backend"
+          # Only check changed files automatically
+          changed-files: "true"
+        continue-on-error: true  # Non-blocking
