@@ -83,28 +83,54 @@ jobs:
 
   backend-checks:
     runs-on: ubuntu-latest
-    name: Backend basic checks
-    defaults:
-      run:
-        working-directory: backend
+    name: Backend checks (Ruff)
     permissions:
       contents: read
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-      - name: Install dependencies
-        run: poetry install --no-interaction --no-root
-      - name: Run basic linting
+          fetch-depth: 0  # Needed for changed files detection
+      
+      - name: Get changed Python files
+        id: changed-files
         run: |
-          poetry run flake8 . || echo "Flake8 check failed but continuing..."
-          poetry run black --check . || echo "Black check failed but continuing..."
-      - name: Run type checking (non-blocking)
-        run: poetry run mypy . || echo "MyPy check failed but continuing..."
+          # Get changed Python files in backend directory
+          CHANGED_FILES=$(git diff --name-only --diff-filter=AM origin/main...HEAD -- 'backend/**/*.py' | tr '\n' ' ')
+          echo "files=$CHANGED_FILES" >> $GITHUB_OUTPUT
+          echo "Changed Python files: $CHANGED_FILES"
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No Python files changed in backend/"
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: 🚨 Critical Issues Check (BLOCKING)
+        if: steps.changed-files.outputs.skip == 'false'
+        uses: astral-sh/ruff-action@v3
+        with:
+          src: ${{ steps.changed-files.outputs.files }}
+          args: check --select F401,F811,F821,F841,B007,B008 --output-format github
+        # This step will FAIL the workflow for critical issues
+      
+      - name: 💅 Style & Format Check (NON-BLOCKING)
+        if: steps.changed-files.outputs.skip == 'false'
+        run: |
+          echo "Installing ruff for style checks..."
+          pip install ruff
+          echo "Checking style issues in: ${{ steps.changed-files.outputs.files }}"
+          ruff check --select E,W,I,UP,B --ignore F401,F811,F821,F841,B007,B008 --output-format github ${{ steps.changed-files.outputs.files }} || echo "⚠️ Style issues found (non-blocking)"
+        continue-on-error: true
+      
+      - name: 🎨 Auto-format Check (NON-BLOCKING)
+        if: steps.changed-files.outputs.skip == 'false'
+        run: |
+          echo "Installing ruff for formatting check..."
+          pip install ruff
+          echo "Checking format of: ${{ steps.changed-files.outputs.files }}"
+          ruff format --check ${{ steps.changed-files.outputs.files }} || echo "⚠️ Files need formatting (run 'ruff format' locally)"
+        continue-on-error: true
+      
+      - name: Skip message
+        if: steps.changed-files.outputs.skip == 'true'
+        run: echo "✅ No Python files changed in backend/ - skipping ruff checks"
