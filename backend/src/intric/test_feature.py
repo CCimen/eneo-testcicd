@@ -25,6 +25,7 @@ class TestFeature:
         """Add an item to the feature."""
         item = {"name": name, "price": price}
         self.items.append(item)
+        print(f"Added item: {name} - ${price}")  # Test change for CI/CD
     
     def get_total(self) -> float:
         """Get total price of all items."""
