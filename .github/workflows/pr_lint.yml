@@ -115,11 +115,12 @@ jobs:
       
       - name: 💅 Style & Format Check (NON-BLOCKING)
         if: steps.changed-files.outputs.skip == 'false'
-        uses: astral-sh/ruff-action@v3
-        with:
-          src: ${{ steps.changed-files.outputs.files }}
-          args: check --select E,W,I,UP,B --ignore F401,F811,F821,F841,B007,B008 --output-format github
-        continue-on-error: true  # Style issues won't block PR
+        run: |
+          echo "Installing ruff for style checks..."
+          pip install ruff
+          echo "Checking style issues in: ${{ steps.changed-files.outputs.files }}"
+          ruff check --select E,W,I,UP,B --ignore F401,F811,F821,F841,B007,B008 --output-format github ${{ steps.changed-files.outputs.files }} || echo "⚠️ Style issues found (non-blocking)"
+        continue-on-error: true
       
       - name: 🎨 Auto-format Check (NON-BLOCKING)
         if: steps.changed-files.outputs.skip == 'false'
